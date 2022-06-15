@@ -16,11 +16,32 @@ sudo chmod -R g+rwx /data/volume_2/robot_or_brain/
 curl https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o Miniconda3-latest-Linux-x86_64.sh 
 bash Miniconda3-latest-Linux-x86_64.sh 
 conda create --name tf python=3.9 
-conda activate tf 
+```
+**Install ipykernel _inside_ the conda environment**
+```
+conda install --yes --channel anaconda ipykernel
+python -m ipykernel install --user --name tf --display-name "Tensorflow"
+vim ~/.local/share/jupyter/kernels/tf/kernel.json
+```
+**Change the location of your python installation so that the file reads:**
+```
+{
+ "argv": [
+  "~/miniconda3/envs/tf/bin/python",
+  "-m",
+  "ipykernel_launcher",
+  "-f",
+  "{connection_file}"
+ ],
+ "display_name": "Tensorflow",
+ "language": "python",
+ "metadata": {
+  "debugger": true
+ }
+}
 ```
 
-### Install Tensorflow
-*Make sure we are in the right conda environment*
+*For all of the below, _make sure_ we are in the right conda environment*
 ```
 conda activate tf 
 ```
@@ -29,6 +50,7 @@ conda activate tf
 (tf) mvanmeersb@robot:/data/volume_2/robot_or_brain$ 
 ```
 
+### Install Tensorflow
 **1. Verify that the Nvidia System Management Interface is installed**
 ```
 nvidia-smi
@@ -90,7 +112,6 @@ python3 -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'
 [PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')]
 ```
 
-
 ### Install Weights and Biases
 ``` 
 pip install wandb 
@@ -103,3 +124,5 @@ wandb login
 Open a website to https://wandb.ai/home  
 Go to your profile -> Settings  
 Scroll down to API keys and create ... or copy the API key to your terminal  
+
+
