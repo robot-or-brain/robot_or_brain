@@ -20,7 +20,7 @@ conda create --name tf python=3.9
 **Install ipykernel _inside_ the conda environment**
 ```
 conda install --yes --channel anaconda ipykernel
-python -m ipykernel install --user --name tf --display-name "Tensorflow"
+python3 -m ipykernel install --user --name tf --display-name "Tensorflow"
 vim ~/.local/share/jupyter/kernels/tf/kernel.json
 ```
 **Change the location of your python installation so that the file reads:**
@@ -85,6 +85,17 @@ conda install -y -c conda-forge cudatoolkit=11.2 cudnn=8.1.0
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/ 
 pip install --upgrade pip 
 pip install tensorflow 
+```
+**update /etc/jupyterhub/jupyterhub_config.py to accept LD_LIBRARY_PATH**
+```
+import os
+c.Spawner.notebook_dir = '~'
+c.Spawner.default_url = '/lab?reset'
+c.Authenticator.admin_users = {'ubuntu'}
+
+os.environ['LD_LIBRARY_PATH'] = '~/miniconda3/envs/tf/lib/'
+c.Spawner.env.update('LD_LIBRARY_PATH')
+c.Spawner.env_keep.append('LD_LIBRARY_PATH')
 ```
 
 **3. Verify the Tensorflow install on the CPU**
