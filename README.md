@@ -14,9 +14,11 @@ sudo chmod -R g+rwx /data/volume_2/robot_or_brain/
 ### Install Miniconda
 ```
 curl https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -o Miniconda3-latest-Linux-x86_64.sh 
-bash Miniconda3-latest-Linux-x86_64.sh 
+bash Miniconda3-latest-Linux-x86_64.sh
 conda create --name tf python=3.9 
 ```
+Close and reopen the terminal window (relogin) in order for the installation to have full effect (e.g. setting PATH variable).
+
 **Install ipykernel _inside_ the conda environment**
 ```
 conda install --yes --channel anaconda ipykernel
