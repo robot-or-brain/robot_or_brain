@@ -27,14 +27,14 @@ with open('./20-06-2022-aivisuals-10-41manual_coding.csv','r') as metadata:
     files = [i for i in csv.DictReader(metadata)]
 extensions = set([f['imageid'].split('.')[-1] for f in files])
 
-ps = [(Path(f['database_name']) / f['imageid'], Path(f['aiframe']), f['id']) for f in files]
+instances = [(Path(f['database_name']) / f['imageid'], Path(f['aiframe']), f['id']) for f in files]
 
-for source_path, folder, id in ps:
-    if os.path.exists(source_path):
-        pass
-    else:
-        print('missing', source_path)
+missing = []
+for source_path, folder, id in instances:    
+    if not os.path.exists(source_path):
+        missing += [source_path]
         continue
     os.makedirs(folder, exist_ok=True)
     target_path = folder / (id + '.jpg')
     shutil.copy(source_path, target_path)
+print('The following files where missing: \n{}', '\n'.join(missing))
