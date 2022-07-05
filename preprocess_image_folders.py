@@ -37,4 +37,4 @@ for source_path, folder, id in instances:
     os.makedirs(folder, exist_ok=True)
     target_path = folder / (id + '.jpg')
     shutil.copy(source_path, target_path)
-print('The following files where missing: \n{}', '\n'.join(missing))
+print('The following files where missing: \n{}', '\n'.join([str(m) for m in m missing]))
