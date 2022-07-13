@@ -24,7 +24,7 @@ import shutil
 import os
 from sklearn.model_selection import train_test_split
 
-with open('./20-06-2022-aivisuals-10-41manual_coding.csv','r') as metadata:
+with open('./20-06-2022-aivisuals-10-41manual_coding.csv', 'r') as metadata:
     files = [i for i in csv.DictReader(metadata)]
 extensions = set([f['imageid'].split('.')[-1] for f in files])
 
@@ -32,20 +32,30 @@ instances = [(f['database_name'], f['imageid'], f['aiframe'], f['id']) for f in 
 rest, test = train_test_split(instances, test_size=0.25, random_state=0, stratify=[y for db, _, y, _ in instances])
 train, validation = train_test_split(rest, test_size=0.2, random_state=0, stratify=[y for db, _, y, _ in rest])
 
+
 def organize_file_structure(instances, split):
     print('Creating {} folder with {} instances'.format(split, len(instances)))
     missing = []
-    for database_name, source_file, y, id in instances:
+    for database_name, source_file, class_name, id in instances:
         source_path = Path(database_name) / source_file
         if not os.path.exists(source_path):
             missing += [source_path]
             continue
-        target_folder = Path('images_by_class') / split / y
+
+        class_folder_name = make_class_name_suitable_for_file_paths(class_name)
+
+        target_folder = Path('images_by_class') / split / class_folder_name
         os.makedirs(target_folder, exist_ok=True)
         target_path = target_folder / (id + '.jpg')
         shutil.copy(source_path, target_path)
     if missing:
         print('The following image files where missing: \n', '\n'.join([str(m) for m in missing]))
+
+
+def make_class_name_suitable_for_file_paths(class_name):
+    class_name_without_slashes = ' or '.join(class_name.split('/'))
+    return ' '.join(class_name_without_slashes.split('  '))
+
 
 organize_file_structure(train, 'train')
 organize_file_structure(validation, 'validation')
