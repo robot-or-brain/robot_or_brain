@@ -29,7 +29,8 @@ with open('./20-06-2022-aivisuals-10-41manual_coding.csv','r') as metadata:
 extensions = set([f['imageid'].split('.')[-1] for f in files])
 
 instances = [(f['database_name'], f['imageid'], f['aiframe'], f['id']) for f in files]
-train, test = train_test_split(instances, test_size=0.25, random_state=0, stratify=[y for db, _, y, _ in instances])
+rest, test = train_test_split(instances, test_size=0.25, random_state=0, stratify=[y for db, _, y, _ in instances])
+train, validation = train_test_split(rest, test_size=0.2, random_state=0, stratify=[y for db, _, y, _ in rest])
 
 def organize_file_structure(instances, split):
     print('Creating {} folder with {} instances'.format(split, len(instances)))
@@ -47,4 +48,5 @@ def organize_file_structure(instances, split):
         print('The following image files where missing: \n', '\n'.join([str(m) for m in missing]))
 
 organize_file_structure(train, 'train')
+organize_file_structure(validation, 'validation')
 organize_file_structure(test, 'test')
