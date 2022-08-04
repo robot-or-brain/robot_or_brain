@@ -5,7 +5,6 @@ from pandas import DataFrame as df
 
 base_dir = Path('../robot-or-brain-data/robot-or-brain-data/images_by_class')
 
-
 def load_dataset(split, current_base_dir=base_dir):
     validation_dir = current_base_dir / split
     class_list = [p.name for p in validation_dir.iterdir()]
