@@ -3,15 +3,13 @@ from wandb.keras import WandbCallback
 
 wandb.init(project="robot-or-brain-POC", entity="robot-or-brain")
 
-
 config = {
-  "learning_rate": 0.001,
-  "epochs": 200,
-  "batch_size": 32,
+    "learning_rate": 0.001,
+    "epochs": 200,
+    "batch_size": 32,
 }
 
 wandb.config = config
-
 
 from tensorflow.keras.applications.resnet_v2 import ResNet50V2
 from tensorflow.keras.preprocessing import image
@@ -22,7 +20,6 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.utils import image_dataset_from_directory
 import numpy as np
 
-
 base_model = ResNet50V2(
     include_top=False,
     weights='imagenet',
@@ -31,40 +28,35 @@ base_model = ResNet50V2(
     pooling='avg'
 )
 
-
 features = base_model.output
 fully_connected_output = Dense(1024, activation='relu')(features)
 predictions = Dense(8, activation='softmax')(fully_connected_output)
 
-
 # this is the model we will train
 model = Model(inputs=base_model.input, outputs=predictions)
-
 
 # Training only top layers i.e. the layers which we have added in the end
 for layer in base_model.layers:
     layer.trainable = False
 
-
-model.compile(optimizer=Adam(lr=config['learning_rate']), loss='sparse_categorical_crossentropy', metrics = ['accuracy'])
-
+model.compile(optimizer=Adam(lr=config['learning_rate']), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
 # The following line cannot be run from a python script.
-#!wget "https://mtintegraal.nl/media/articles/926/ai-technische-onmogelijkheden.jpg"
+# !wget "https://mtintegraal.nl/media/articles/926/ai-technische-onmogelijkheden.jpg"
 
 
-#img_path = 'ai-technische-onmogelijkheden.jpg'
-#img = image.load_img(img_path, target_size=(224, 224))
-#x = image.img_to_array(img)
-#x = np.expand_dims(x, axis=0)
-#x = preprocess_input(x)
+# img_path = 'ai-technische-onmogelijkheden.jpg'
+# img = image.load_img(img_path, target_size=(224, 224))
+# x = image.img_to_array(img)
+# x = np.expand_dims(x, axis=0)
+# x = preprocess_input(x)
 
-#print(x.shape)
-#img
+# print(x.shape)
+# img
 
 
-#preds = model.predict(x)
-#preds.shape
+# preds = model.predict(x)
+# preds.shape
 
 
 # ----
@@ -111,3 +103,5 @@ model.fit(
     validation_data=validation_ds,
     callbacks=[WandbCallback()],
 )
+
+model.save('fine_tuned_model')
