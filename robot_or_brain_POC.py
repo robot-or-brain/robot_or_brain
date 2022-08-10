@@ -73,15 +73,13 @@ train_ds = image_dataset_from_directory(
     image_size=(224, 224),
     shuffle=True,
     seed=0,
-    validation_split=0.2,
-    subset='training',
     interpolation="bilinear",
     follow_links=False,
     crop_to_aspect_ratio=False,
 )
 
 validation_ds = image_dataset_from_directory(
-    '../robot_or_brain_data/images_by_class/train',
+    '../robot_or_brain_data/images_by_class/validation',
     labels="inferred",
     label_mode="int",
     class_names=None,
@@ -90,8 +88,6 @@ validation_ds = image_dataset_from_directory(
     image_size=(224, 224),
     shuffle=True,
     seed=0,
-    validation_split=0.2,
-    subset='validation',
     interpolation="bilinear",
     follow_links=False,
     crop_to_aspect_ratio=False,
