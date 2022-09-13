@@ -3,9 +3,12 @@ import krippendorff
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from pandas import DataFrame as df
 
-base_dir = Path('../robot-or-brain-data/robot-or-brain-data/images_by_class')
+public_base_dir = Path('../robot_or_brain_public_data/images_by_class')
+private_base_dir = Path('../robot_or_brain_private_data/images_by_class')
+combined_base_dir = Path('../robot_or_brain_combined_data/images_by_class')
 
-def load_dataset(split, current_base_dir=base_dir):
+
+def load_dataset(split, current_base_dir=combined_base_dir):
     validation_dir = current_base_dir / split
     class_list = [p.name for p in validation_dir.iterdir()]
     data_lists = [[f, cls] for cls in class_list for f in (validation_dir / cls).iterdir()]
