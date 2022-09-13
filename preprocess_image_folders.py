@@ -1,30 +1,36 @@
-# Script to transform dataset from form 1 to keras-ready form.
-# Form 1:
-# / metadata.csv
-# / flickr
-#   / file1.jpg
-#   / file2.jpg
-# / imago
-#   / file1.jpg
-#   / file2.jpg
-# With metadata containing the following fields:
-# id,"imageid","database_name","aiframe","status","coder","coded_time"
-#
-# The keras-ready form:
-# / class_a
-#   / file1.jpg
-#   / file2.jpg
-# / class_b
-#   / file1.jpg
-#   / file2.jpg
+description = """ 
+Script to transform dataset from form 1 to keras-ready form.
+Form 1:
+/ metadata.csv
+/ flickr
+  / file1.jpg
+  / file2.jpg
+/ imago
+  / file1.jpg
+  / file2.jpg
+With metadata containing the following fields:
+"id","imageid","database_name","aiframe","status","coder","coded_time"
+The keras-ready form:
+/ class_a
+  / file1.jpg
+  / file2.jpg
+/ class_b
+  / file1.jpg
+  / file2.jpg
+"""
 
 import csv
 from pathlib import Path
 import shutil
 import os
 from sklearn.model_selection import train_test_split
+import argparse
 
-with open('./20-06-2022-aivisuals-10-41manual_coding.csv', 'r') as metadata:
+parser = argparse.ArgumentParser(description='Process some integers.')
+parser.add_argument('csv_path', type=Path, help='Path to the csv file containing the metadata for the images.')
+args = parser.parse_args()
+
+with open(args.csv_path, 'r') as metadata:
     files = [i for i in csv.DictReader(metadata)]
 extensions = set([f['imageid'].split('.')[-1] for f in files])
 
