@@ -44,7 +44,7 @@ model.compile(optimizer=Adam(lr=config['learning_rate']), loss='sparse_categoric
 # ----
 
 train_ds = image_dataset_from_directory(
-    '../robot_or_brain_data/images_by_class/train',
+    '../robot_or_brain_combined_data/images_by_class/train',
     labels="inferred",
     label_mode="int",
     class_names=None,
@@ -59,7 +59,7 @@ train_ds = image_dataset_from_directory(
 )
 
 validation_ds = image_dataset_from_directory(
-    '../robot_or_brain_data/images_by_class/validation',
+    '../robot_or_brain_combined_data/images_by_class/validation',
     labels="inferred",
     label_mode="int",
     class_names=None,
