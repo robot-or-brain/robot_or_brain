@@ -13,11 +13,13 @@ config = {
 
 wandb.config = config
 
+
 from tensorflow.keras.applications.resnet_v2 import ResNet50V2
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.utils import image_dataset_from_directory
+
 
 # ----
 # Let's load the data
@@ -86,7 +88,14 @@ model.fit(
     train_ds,
     epochs=config['epochs'],
     validation_data=validation_ds,
-    callbacks=[WandbCallback()],
+    callbacks=[WandbCallback(
+        save_weights_only=False,
+        generator=validation_ds,
+        input_type='image',
+        output_type='label',
+        log_evaluation=True,
+        log_evaluation_frequency=5,
+    )],
 )
 
 model.save('fine_tuned_model_' + wandb.run.id)
