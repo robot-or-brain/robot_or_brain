@@ -81,21 +81,50 @@ def create_model(n_classes):
 model = create_model(n_classes=len(train_ds.class_names))
 
 # ----
+# Define validation metrics
+# ----
+
+class PRMetrics(Callback):
+  """ Custom callback to compute metrics at the end of each training epoch"""
+  def __init__(self, generator=None, num_log_batches=1):
+    self.generator = generator
+    self.num_batches = num_log_batches
+    # store full names of classes
+    self.flat_class_names = [k for k, v in generator.class_indices.items()]
+
+  def on_epoch_end(self, epoch, logs={}):
+    # collect validation data and ground truth labels from generator
+    val_data, val_labels = zip(*(self.generator[i] for i in range(self.num_batches)))
+    val_data, val_labels = np.vstack(val_data), np.vstack(val_labels)
+
+    # use the trained model to generate predictions for the given number
+    # of validation data batches (num_batches)
+    val_predictions = self.model.predict(val_data)
+    ground_truth_class_ids = val_labels.argmax(axis=1)
+    # take the argmax for each set of prediction scores
+    # to return the class id of the highest confidence prediction
+    top_pred_ids = val_predictions.argmax(axis=1)
+
+    # Log confusion matrix
+    # the key "conf_mat" is the id of the plot--do not change
+    # this if you want subsequent runs to show up on the same plot
+    wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None,
+                            preds=top_pred_ids, y_true=ground_truth_class_ids,
+                            class_names=self.flat_class_names)})
+
+
+# ----
 # Let's train the model now
 # ----
+wandb_callback = WandbCallback(save_weights_only=False, generator=validation_ds, input_type='image', output_type='label',
+                         log_evaluation=True, log_evaluation_frequency=5, )
+callbacks = [wandb_callback, PRMetrics(validation_ds, config['batch_size'])]
 
 model.fit(
     train_ds,
     epochs=config['epochs'],
     validation_data=validation_ds,
-    callbacks=[WandbCallback(
-        save_weights_only=False,
-        generator=validation_ds,
-        input_type='image',
-        output_type='label',
-        log_evaluation=True,
-        log_evaluation_frequency=5,
-    )],
+    callbacks=[wandb_callback],
 )
 
 model.save('fine_tuned_model_' + wandb.run.id)
