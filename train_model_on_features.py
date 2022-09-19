@@ -19,6 +19,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.utils import image_dataset_from_directory
+from tensorflow.keras.callbacks import Callback
 
 
 # ----
