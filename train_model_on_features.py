@@ -1,6 +1,8 @@
 import argparse
 from pathlib import Path
 
+from keras_preprocessing.image import ImageDataGenerator
+
 import wandb
 from wandb.keras import WandbCallback
 import numpy as np
@@ -21,8 +23,8 @@ config = {
     "train_path": train_path,
 }
 
-wandb.config = config
 
+wandb.config = config
 
 from tensorflow.keras.applications.resnet_v2 import ResNet50V2
 from tensorflow.keras.models import Model
@@ -31,39 +33,29 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.utils import image_dataset_from_directory
 from tensorflow.keras.callbacks import Callback
 
-
 # ----
 # Let's load the data
 # ----
 
-train_ds = image_dataset_from_directory(
+
+train_generator = ImageDataGenerator().flow_from_directory(
     config['train_path'],
-    labels="inferred",
-    label_mode="int",
-    class_names=None,
-    color_mode="rgb",
+    target_size=(224, 224),
     batch_size=config['batch_size'],
-    image_size=(224, 224),
+    class_mode='sparse',
     shuffle=True,
     seed=0,
-    interpolation="bilinear",
-    follow_links=False,
-    crop_to_aspect_ratio=False,
+    interpolation='bilinear',
 )
 
-validation_ds = image_dataset_from_directory(
+validation_generator = ImageDataGenerator().flow_from_directory(
     config['validation_path'],
-    labels="inferred",
-    label_mode="int",
-    class_names=None,
-    color_mode="rgb",
+    target_size=(224, 224),
     batch_size=config['batch_size'],
-    image_size=(224, 224),
+    class_mode='sparse',
     shuffle=True,
     seed=0,
-    interpolation="bilinear",
-    follow_links=False,
-    crop_to_aspect_ratio=False,
+    interpolation='bilinear',
 )
 
 
@@ -89,52 +81,56 @@ def create_model(n_classes):
     return model
 
 
-model = create_model(n_classes=len(train_ds.class_names))
+model = create_model(n_classes=len(train_generator.classes))
+
 
 # ----
 # Define validation metrics
 # ----
 
 class PRMetrics(Callback):
-  """ Custom callback to compute metrics at the end of each training epoch"""
-  def __init__(self, generator=None, num_log_batches=1):
-    self.generator = generator
-    self.num_batches = num_log_batches
-    # store full names of classes
-    # self.flat_class_names = [k for k, v in generator.class_indices.items()]
+    """ Custom callback to compute metrics at the end of each training epoch"""
 
-  def on_epoch_end(self, epoch, logs={}):
-    # collect validation data and ground truth labels from generator
-    val_data, val_labels = zip(*(self.generator[i] for i in range(self.num_batches)))
-    val_data, val_labels = np.vstack(val_data), np.vstack(val_labels)
+    def __init__(self, generator=None, num_log_batches=1):
+        self.generator = generator
+        self.num_batches = num_log_batches
+        # store full names of classes
+        # self.flat_class_names = [k for k, v in generator.class_indices.items()]
 
-    # use the trained model to generate predictions for the given number
-    # of validation data batches (num_batches)
-    val_predictions = self.model.predict(val_data)
-    ground_truth_class_ids = val_labels.argmax(axis=1)
-    # take the argmax for each set of prediction scores
-    # to return the class id of the highest confidence prediction
-    top_pred_ids = val_predictions.argmax(axis=1)
+    def on_epoch_end(self, epoch, logs={}):
+        # collect validation data and ground truth labels from generator
+        val_data, val_labels = zip(*(self.generator[i] for i in range(self.num_batches)))
+        val_data, val_labels = np.vstack(val_data), np.vstack(val_labels)
 
-    # Log confusion matrix
-    # the key "conf_mat" is the id of the plot--do not change
-    # this if you want subsequent runs to show up on the same plot
-    wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None,
-                            preds=top_pred_ids, y_true=ground_truth_class_ids,
-                            class_names=self.generator.class_names)})
+        # use the trained model to generate predictions for the given number
+        # of validation data batches (num_batches)
+        val_predictions = self.model.predict(val_data)
+        ground_truth_class_ids = val_labels.argmax(axis=1)
+        # take the argmax for each set of prediction scores
+        # to return the class id of the highest confidence prediction
+        top_pred_ids = val_predictions.argmax(axis=1)
+
+        # Log confusion matrix
+        # the key "conf_mat" is the id of the plot--do not change
+        # this if you want subsequent runs to show up on the same plot
+        wandb.log({"conf_mat": wandb.plot.confusion_matrix(probs=None,
+                                                           preds=top_pred_ids, y_true=ground_truth_class_ids,
+                                                           class_names=self.generator.classes)})
 
 
 # ----
 # Let's train the model now
 # ----
-wandb_callback = WandbCallback(save_weights_only=False, generator=validation_ds, input_type='image', output_type='label',
-                         log_evaluation=True, log_evaluation_frequency=5, )
-callbacks = [wandb_callback, PRMetrics(validation_ds, config['batch_size'])]
+wandb_callback = WandbCallback(save_weights_only=False, generator=validation_generator, input_type='image',
+                               output_type='label',
+                               log_evaluation=True, log_evaluation_frequency=5, )
+callbacks = [wandb_callback, PRMetrics(validation_generator, config['batch_size'])]
 
+train_set_size = 3000
 model.fit(
-    train_ds,
+    train_generator,
     epochs=config['epochs'],
-    validation_data=validation_ds,
+    validation_data=validation_generator,
     callbacks=[wandb_callback],
 )
 
