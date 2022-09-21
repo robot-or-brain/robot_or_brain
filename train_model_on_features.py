@@ -1,5 +1,6 @@
 import wandb
 from wandb.keras import WandbCallback
+import numpy as np
 
 wandb.init(project="robot-or-brain-POC", entity="robot-or-brain")
 
@@ -7,8 +8,8 @@ config = {
     "learning_rate": 0.001,
     "epochs": 200,
     "batch_size": 32,
-    "validation_path": '../robot_or_brain_combined_data/images_by_class/validation',
-    "train_path": '../robot_or_brain_combined_data/images_by_class/train',
+    "validation_path": '../robot_or_brain_public_data_dummy/images_by_class/validation',
+    "train_path": '../robot_or_brain_public_data_dummy/images_by_class/train',
 }
 
 wandb.config = config
@@ -74,7 +75,7 @@ def create_model(n_classes):
     # Training only top layers i.e. the layers which we have added in the end
     for layer in base_model.layers:
         layer.trainable = False
-    model.compile(optimizer=Adam(lr=config['learning_rate']), loss='sparse_categorical_crossentropy',
+    model.compile(optimizer=Adam(learning_rate=config['learning_rate']), loss='sparse_categorical_crossentropy',
                   metrics=['accuracy'])
     return model
 
@@ -91,7 +92,7 @@ class PRMetrics(Callback):
     self.generator = generator
     self.num_batches = num_log_batches
     # store full names of classes
-    self.flat_class_names = [k for k, v in generator.class_indices.items()]
+    # self.flat_class_names = [k for k, v in generator.class_indices.items()]
 
   def on_epoch_end(self, epoch, logs={}):
     # collect validation data and ground truth labels from generator
@@ -111,7 +112,7 @@ class PRMetrics(Callback):
     # this if you want subsequent runs to show up on the same plot
     wandb.log({"conf_mat" : wandb.plot.confusion_matrix(probs=None,
                             preds=top_pred_ids, y_true=ground_truth_class_ids,
-                            class_names=self.flat_class_names)})
+                            class_names=self.generator.class_names)})
 
 
 # ----
