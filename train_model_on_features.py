@@ -1,15 +1,24 @@
+import argparse
+from pathlib import Path
+
 import wandb
 from wandb.keras import WandbCallback
 import numpy as np
 
 wandb.init(project="robot-or-brain-POC", entity="robot-or-brain")
 
+parser = argparse.ArgumentParser(description='Process some integers.')
+parser.add_argument('data_base_path', type=Path, help='Path to dir containing the metadata csv file.')
+args = parser.parse_args()
+
+validation_path = args.data_base_path / 'images_by_class/validation'
+train_path = args.data_base_path / 'images_by_class/train'
 config = {
     "learning_rate": 0.001,
     "epochs": 200,
     "batch_size": 32,
-    "validation_path": '../robot_or_brain_public_data_dummy/images_by_class/validation',
-    "train_path": '../robot_or_brain_public_data_dummy/images_by_class/train',
+    "validation_path": validation_path,
+    "train_path": train_path,
 }
 
 wandb.config = config
