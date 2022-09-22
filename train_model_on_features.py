@@ -19,6 +19,7 @@ config = {
     "batch_size": 32,
     "validation_path": validation_path,
     "train_path": train_path,
+    "lr_decay": 1e-4,
 }
 
 wandb.config = config
@@ -93,8 +94,8 @@ def create_model(n_classes):
     # Training only top layers i.e. the layers which we have added in the end
     for layer in base_model.layers:
         layer.trainable = False
-    model.compile(optimizer=Adam(learning_rate=config['learning_rate']), loss='sparse_categorical_crossentropy',
-                  metrics=['accuracy'], decay=1e-4)
+    model.compile(optimizer=Adam(learning_rate=config['learning_rate'], decay=config['lr_decay']), loss='sparse_categorical_crossentropy',
+                  metrics=['accuracy'])
     return model
 
 
