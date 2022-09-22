@@ -94,7 +94,7 @@ def create_model(n_classes):
     for layer in base_model.layers:
         layer.trainable = False
     model.compile(optimizer=Adam(learning_rate=config['learning_rate']), loss='sparse_categorical_crossentropy',
-                  metrics=['accuracy'])
+                  metrics=['accuracy'], decay=1e-4)
     return model
 
 
@@ -109,7 +109,7 @@ wandb_callback = WandbCallback(save_weights_only=False, generator=validation_ds,
 callbacks = [wandb_callback]
 
 model.fit(
-    train_ds.map(lambda x, y: (augment(x), y),),
+    train_ds, #.map(lambda x, y: (augment(x), y),),  #Doesn't seem to work corretly yet
     epochs=config['epochs'],
     validation_data=validation_ds,
     callbacks=[wandb_callback],
