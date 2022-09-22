@@ -1,8 +1,6 @@
 import argparse
 from pathlib import Path
 
-from keras_preprocessing.image import ImageDataGenerator
-
 import wandb
 from wandb.keras import WandbCallback
 import numpy as np
@@ -23,7 +21,6 @@ config = {
     "train_path": train_path,
 }
 
-
 wandb.config = config
 
 from tensorflow.keras.applications.resnet_v2 import ResNet50V2
@@ -32,30 +29,50 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.utils import image_dataset_from_directory
 from tensorflow.keras.callbacks import Callback
+import tensorflow as tf
+from tensorflow.keras import layers
 
 # ----
 # Let's load the data
 # ----
 
+input_resolution = 224
 
-train_generator = ImageDataGenerator().flow_from_directory(
+augment = tf.keras.Sequential([
+    layers.Resizing(input_resolution, input_resolution),
+    layers.Rescaling(1. / 255),
+    layers.RandomFlip(mode='horizontal'),
+    # layers.RandomRotation(),
+])
+
+train_ds = image_dataset_from_directory(
     config['train_path'],
-    target_size=(224, 224),
+    labels="inferred",
+    label_mode="int",
+    class_names=None,
+    color_mode="rgb",
     batch_size=config['batch_size'],
-    class_mode='sparse',
+    image_size=(input_resolution, input_resolution),
     shuffle=True,
     seed=0,
-    interpolation='bilinear',
+    interpolation="bilinear",
+    follow_links=False,
+    crop_to_aspect_ratio=False,
 )
 
-validation_generator = ImageDataGenerator().flow_from_directory(
+validation_ds = image_dataset_from_directory(
     config['validation_path'],
-    target_size=(224, 224),
+    labels="inferred",
+    label_mode="int",
+    class_names=None,
+    color_mode="rgb",
     batch_size=config['batch_size'],
-    class_mode='sparse',
+    image_size=(input_resolution, input_resolution),
     shuffle=True,
     seed=0,
-    interpolation='bilinear',
+    interpolation="bilinear",
+    follow_links=False,
+    crop_to_aspect_ratio=False,
 )
 
 
@@ -81,7 +98,7 @@ def create_model(n_classes):
     return model
 
 
-model = create_model(n_classes=len(train_generator.classes))
+model = create_model(n_classes=len(train_ds.class_names))
 
 
 # ----
@@ -115,22 +132,21 @@ class PRMetrics(Callback):
         # this if you want subsequent runs to show up on the same plot
         wandb.log({"conf_mat": wandb.plot.confusion_matrix(probs=None,
                                                            preds=top_pred_ids, y_true=ground_truth_class_ids,
-                                                           class_names=self.generator.classes)})
+                                                           class_names=self.generator.class_names)})
 
 
 # ----
 # Let's train the model now
 # ----
-wandb_callback = WandbCallback(save_weights_only=False, generator=validation_generator, input_type='image',
+wandb_callback = WandbCallback(save_weights_only=False, generator=validation_ds, input_type='image',
                                output_type='label',
                                log_evaluation=True, log_evaluation_frequency=5, )
-callbacks = [wandb_callback, PRMetrics(validation_generator, config['batch_size'])]
+callbacks = [wandb_callback, PRMetrics(validation_ds, config['batch_size'])]
 
-train_set_size = 3000
 model.fit(
-    train_generator,
+    train_ds.map(lambda x, y: (augment(x), y),),
     epochs=config['epochs'],
-    validation_data=validation_generator,
+    validation_data=validation_ds,
     callbacks=[wandb_callback],
 )
 
