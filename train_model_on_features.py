@@ -1,9 +1,9 @@
 import argparse
 from pathlib import Path
 
-import wandb
 from wandb.keras import WandbCallback
-import numpy as np
+
+import wandb
 
 wandb.init(project="robot-or-brain-POC", entity="robot-or-brain")
 
@@ -29,7 +29,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.utils import image_dataset_from_directory
-from tensorflow.keras.callbacks import Callback
+from keras.preprocessing.image import ImageDataGenerator
 import tensorflow as tf
 from tensorflow.keras import layers
 
@@ -41,7 +41,6 @@ input_resolution = 224
 
 augment = tf.keras.Sequential([
     layers.Resizing(input_resolution, input_resolution),
-    layers.Rescaling(1. / 255),
     layers.RandomFlip(mode='horizontal'),
     # layers.RandomRotation(),
 ])
@@ -60,6 +59,15 @@ train_ds = image_dataset_from_directory(
     follow_links=False,
     crop_to_aspect_ratio=False,
 )
+
+train_datagen = ImageDataGenerator(
+    rescale=1. / 255,
+    shear_range=0,
+    zoom_range=0,
+    rotation_range=10,
+    horizontal_flip=True,
+    width_shift_range=0.1,  # randomly shift images horizontally (fraction of total width)
+    height_shift_range=0.1)
 
 validation_ds = image_dataset_from_directory(
     config['validation_path'],
@@ -94,7 +102,8 @@ def create_model(n_classes):
     # Training only top layers i.e. the layers which we have added in the end
     for layer in base_model.layers:
         layer.trainable = False
-    model.compile(optimizer=Adam(learning_rate=config['learning_rate'], decay=config['lr_decay']), loss='sparse_categorical_crossentropy',
+    model.compile(optimizer=Adam(learning_rate=config['learning_rate'], decay=config['lr_decay']),
+                  loss='sparse_categorical_crossentropy',
                   metrics=['accuracy'])
     return model
 
@@ -106,7 +115,13 @@ model = create_model(n_classes=len(train_ds.class_names))
 # ----
 
 model.fit(
-    train_ds, #.map(lambda x, y: (augment(x), y),),  #Doesn't seem to work corretly yet
+    # train_ds,  # .map(lambda x, y: (augment(x), y),),  #Doesn't seem to work correctly yet
+    train_datagen.flow_from_directory(
+        config['train_path'],
+        batch_size=config['batch_size'],
+        target_size=(input_resolution, input_resolution),
+        class_mode='sparse',
+    ),
     epochs=config['epochs'],
     validation_data=validation_ds,
     callbacks=[WandbCallback()],
