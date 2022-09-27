@@ -104,16 +104,12 @@ model = create_model(n_classes=len(train_ds.class_names))
 # ----
 # Let's train the model now
 # ----
-wandb_callback = WandbCallback(save_weights_only=False, generator=validation_ds, input_type='image',
-                               output_type='label',
-                               log_evaluation=True, log_evaluation_frequency=20, )
-callbacks = [wandb_callback]
 
 model.fit(
     train_ds, #.map(lambda x, y: (augment(x), y),),  #Doesn't seem to work corretly yet
     epochs=config['epochs'],
     validation_data=validation_ds,
-    callbacks=[wandb_callback],
+    callbacks=[WandbCallback()],
 )
 
 model.save('fine_tuned_model_' + wandb.run.id)
