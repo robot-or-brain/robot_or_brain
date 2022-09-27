@@ -61,7 +61,7 @@ train_ds = image_dataset_from_directory(
 )
 
 train_datagen = ImageDataGenerator(
-    rescale=1. / 255,
+    # rescale=1. / 255,
     shear_range=0,
     zoom_range=0,
     rotation_range=10,
