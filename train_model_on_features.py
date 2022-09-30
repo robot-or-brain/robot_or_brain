@@ -24,7 +24,7 @@ config = {
 
 wandb.config = config
 
-from tensorflow.keras.applications.resnet_v2 import ResNet50V2
+from tensorflow.keras.applications.resnet_v2 import ResNet50V2, preprocess_input
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
@@ -94,11 +94,13 @@ def create_model(n_classes):
         pooling='avg'
     )
 
-    features = base_model.output
+    inputs = tf.keras.Input(shape=(None, None, 3))
+    preprocessed_input = preprocess_input(inputs)
+    features = base_model(preprocessed_input)
     fully_connected_output = Dense(1024, activation='relu')(features)
     predictions = Dense(n_classes, activation='softmax')(fully_connected_output)
     # this is the model we will train
-    model = Model(inputs=base_model.input, outputs=predictions)
+    model = Model(inputs=inputs, outputs=predictions)
     # Training only top layers i.e. the layers which we have added in the end
     for layer in base_model.layers:
         layer.trainable = False
