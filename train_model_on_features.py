@@ -15,7 +15,7 @@ validation_path = args.data_base_path / 'images_by_class/validation'
 train_path = args.data_base_path / 'images_by_class/train'
 config = {
     "learning_rate": 0.001,
-    "epochs": 200,
+    "epochs": 10,
     "batch_size": 32,
     "validation_path": validation_path,
     "train_path": train_path,
@@ -37,12 +37,31 @@ from tensorflow.keras import layers
 # Let's load the data
 # ----
 
-input_resolution = 224
-
+input_resolution = 244
 augment = tf.keras.Sequential([
-    layers.Resizing(input_resolution, input_resolution),
+    layers.RandomContrast(0.1, seed=None),
+    layers.RandomBrightness(0.1, value_range=(0, 255)),
     layers.RandomFlip(mode='horizontal'),
-    # layers.RandomRotation(),
+    layers.RandomRotation(factor=.02),
+    tf.keras.layers.RandomTranslation(
+        0.02,
+        0.02,
+        fill_mode="reflect",
+        interpolation="bilinear",
+        seed=None,
+        fill_value=0.0,
+
+    ),
+
+    layers.RandomZoom(
+        (-0.2, 0),
+        width_factor=None,
+        fill_mode="reflect",
+        interpolation="bilinear",
+        seed=None,
+        fill_value=0.0,
+    ),
+    layers.Resizing(input_resolution, input_resolution),
 ])
 
 train_ds = image_dataset_from_directory(
