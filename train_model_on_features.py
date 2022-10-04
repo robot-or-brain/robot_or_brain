@@ -13,6 +13,7 @@ parser.add_argument('--epochs', default=100, type=int, help='Number of epochs to
 parser.add_argument('--batch_size', default=32, type=int, help='Number of images used each time to calculate the gradient.')
 parser.add_argument('--learning_rate', default=0.001, type=float, help='The size of the update step during learning.')
 parser.add_argument('--lr_decay', default=1e-4, type=float, help='The rate at which the learning rate is decreased over epochs.')
+parser.add_argument('--dropout_rate', default=None, type=float, help='Rate for dropout layers. None means no dropout.')
 parser.add_argument('--use_augmentation', default=True, choices=('True', 'False'), help='Should images be augmented by random zooming, rotating etc.')
 
 
@@ -28,6 +29,7 @@ config = {
     "train_path": train_path,
     "lr_decay": args.lr_decay,
     "use_augmentation": args.use_augmentation,
+    "dropout_rate": args.dropout_rate,
 }
 
 print(config)
@@ -128,7 +130,14 @@ def create_model(n_classes, use_augmentation):
         inputs = input_layer
     preprocessed_input = preprocess_input(inputs)
     features = base_model(preprocessed_input)
-    fully_connected_output = Dense(1024, activation='relu')(features)
+
+    fully_connected_layer = Dense(1024, activation='relu')(features)
+    if config['dropout_rate'] is not None:
+        dropout = tf.keras.layers.Dropout(config['dropout_rate'])
+        fully_connected_output = dropout(fully_connected_layer)
+    else:
+        fully_connected_output = fully_connected_layer
+
     predictions = Dense(n_classes, activation='softmax')(fully_connected_output)
     # this is the model we will train
     model = Model(inputs=input_layer, outputs=predictions)
