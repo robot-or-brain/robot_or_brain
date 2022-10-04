@@ -20,6 +20,7 @@ config = {
     "validation_path": validation_path,
     "train_path": train_path,
     "lr_decay": 1e-4,
+    "use_augmentation": True,
 }
 
 wandb.config = config
@@ -50,7 +51,6 @@ augment = tf.keras.Sequential([
         interpolation="bilinear",
         seed=None,
         fill_value=0.0,
-
     ),
 
     layers.RandomZoom(
@@ -104,7 +104,16 @@ validation_ds = image_dataset_from_directory(
 )
 
 
-def create_model(n_classes):
+def create_model(n_classes, use_augmentation):
+    """
+    Creates a model. Optionally, augmentation layers can be added before the
+    rest of the model. Note that these are only run during training
+    (when training=True is passed to them). During prediction mode, augmentation
+    is always turned off.
+    :param n_classes:
+    :param use_augmentation: Whether to include augmentation layers in the model
+    :return:
+    """
     base_model = ResNet50V2(
         include_top=False,
         weights='imagenet',
@@ -113,13 +122,17 @@ def create_model(n_classes):
         pooling='avg'
     )
 
-    inputs = tf.keras.Input(shape=(None, None, 3))
+    input_layer = tf.keras.Input(shape=(None, None, 3))
+    if use_augmentation:
+        inputs = augment(input_layer)
+    else:
+        inputs = input_layer
     preprocessed_input = preprocess_input(inputs)
     features = base_model(preprocessed_input)
     fully_connected_output = Dense(1024, activation='relu')(features)
     predictions = Dense(n_classes, activation='softmax')(fully_connected_output)
     # this is the model we will train
-    model = Model(inputs=inputs, outputs=predictions)
+    model = Model(inputs=input_layer, outputs=predictions)
     # Training only top layers i.e. the layers which we have added in the end
     for layer in base_model.layers:
         layer.trainable = False
@@ -129,7 +142,7 @@ def create_model(n_classes):
     return model
 
 
-model = create_model(n_classes=len(train_ds.class_names))
+model = create_model(n_classes=len(train_ds.class_names), use_augmentation=config['use_augmentation'])
 
 # ----
 # Let's train the model now
