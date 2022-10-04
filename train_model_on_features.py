@@ -7,22 +7,30 @@ import wandb
 
 wandb.init(project="robot-or-brain-POC", entity="robot-or-brain")
 
-parser = argparse.ArgumentParser(description='Process some integers.')
+parser = argparse.ArgumentParser(description='Train classifier on directory structure with images.')
 parser.add_argument('data_base_path', type=Path, help='Path to dir containing the metadata csv file.')
+parser.add_argument('--epochs', default=100, type=int, help='Number of epochs to train.')
+parser.add_argument('--batch_size', default=32, type=int, help='Number of images used each time to calculate the gradient.')
+parser.add_argument('--learning_rate', default=0.001, type=float, help='The size of the update step during learning.')
+parser.add_argument('--lr_decay', default=1e-4, type=float, help='The rate at which the learning rate is decreased over epochs.')
+parser.add_argument('--use_augmentation', default=True, choices=('True', 'False'), help='Should images be augmented by random zooming, rotating etc.')
+
+
 args = parser.parse_args()
 
 validation_path = args.data_base_path / 'images_by_class/validation'
 train_path = args.data_base_path / 'images_by_class/train'
 config = {
-    "learning_rate": 0.001,
-    "epochs": 10,
-    "batch_size": 32,
+    "learning_rate": args.learning_rate,
+    "epochs": args.epochs,
+    "batch_size": args.batch_size,
     "validation_path": validation_path,
     "train_path": train_path,
-    "lr_decay": 1e-4,
-    "use_augmentation": True,
+    "lr_decay": args.lr_decay,
+    "use_augmentation": args.use_augmentation,
 }
 
+print(config)
 wandb.config = config
 
 from tensorflow.keras.applications.resnet_v2 import ResNet50V2, preprocess_input
@@ -78,15 +86,6 @@ train_ds = image_dataset_from_directory(
     follow_links=False,
     crop_to_aspect_ratio=False,
 )
-
-train_datagen = ImageDataGenerator(
-    # rescale=1. / 255,
-    shear_range=0,
-    zoom_range=0,
-    rotation_range=10,
-    horizontal_flip=True,
-    width_shift_range=0.1,  # randomly shift images horizontally (fraction of total width)
-    height_shift_range=0.1)
 
 validation_ds = image_dataset_from_directory(
     config['validation_path'],
@@ -149,13 +148,7 @@ model = create_model(n_classes=len(train_ds.class_names), use_augmentation=confi
 # ----
 
 model.fit(
-    # train_ds,  # .map(lambda x, y: (augment(x), y),),  #Doesn't seem to work correctly yet
-    train_datagen.flow_from_directory(
-        config['train_path'],
-        batch_size=config['batch_size'],
-        target_size=(input_resolution, input_resolution),
-        class_mode='sparse',
-    ),
+    train_ds,
     epochs=config['epochs'],
     validation_data=validation_ds,
     callbacks=[WandbCallback()],
