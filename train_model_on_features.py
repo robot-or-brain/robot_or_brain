@@ -8,7 +8,7 @@ import wandb
 wandb.init(project="robot-or-brain-POC", entity="robot-or-brain")
 
 parser = argparse.ArgumentParser(description='Train classifier on directory structure with images.')
-parser.add_argument('data_base_path', type=Path, help='Path to dir containing the metadata csv file.')
+parser.add_argument('--data_base_path', type=Path, help='Path to dir containing the metadata csv file.')
 parser.add_argument('--epochs', default=100, type=int, help='Number of epochs to train.')
 parser.add_argument('--batch_size', default=32, type=int, help='Number of images used each time to calculate the gradient.')
 parser.add_argument('--learning_rate', default=0.001, type=float, help='The size of the update step during learning.')
