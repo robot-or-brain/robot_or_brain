@@ -1,0 +1,24 @@
+command:
+  - ${env}
+  - ${interpreter}
+  - train_model_on_features.py
+  - ${args}
+method: grid
+metric:
+  name: val_loss
+  goal: minimize
+parameters:
+  data_base_path:
+    value: ..\robot_or_brain_combined_data\
+  epochs:
+    value: 100
+  batch_size:
+    value: 32
+  learning_rate:
+    value: 0.001
+  lr_decay:
+    value: 1e-4
+  dropout_rate:
+    value: 0.2
+  use_augmentation:
+    value: False
