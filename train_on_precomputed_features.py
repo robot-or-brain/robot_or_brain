@@ -1,8 +1,8 @@
 import argparse
 from pathlib import Path
-
 import numpy as np
 import pandas as pd
+from pandas import DataFrame as df
 import tensorflow as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras import Input
@@ -45,8 +45,8 @@ config = {
 
 print(config)
 
-
 wandb.config = config
+
 
 def create_model(n_classes, n_features):
     """
@@ -103,3 +103,26 @@ model.fit(
 )
 
 model.save('clip_features_model_' + wandb.run.id)
+
+
+def evaluate(model, validation_ds, class_names):
+    predicted = [class_names[v] for v in np.argmax(model.predict(validation_ds), 1)]
+    trues = [class_names[int(y)] for _x, y in validation_ds.unbatch()]
+
+    from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+    confusion = confusion_matrix(trues, predicted)
+    print(confusion)
+    disp = ConfusionMatrixDisplay(confusion_matrix=confusion, display_labels=class_names)
+    _ = disp.plot(cmap='Greys', xticks_rotation='vertical')
+
+    # Confusion matrix number 2
+    unique_label = np.unique([trues, predicted])
+    cmtx = pd.DataFrame(
+        confusion_matrix(trues, predicted, labels=unique_label),
+        index=['true:{:}'.format(x) for x in unique_label],
+        columns=['pred:{:}'.format(x) for x in unique_label]
+    )
+    print(cmtx)
+
+
+evaluate(model, val_ds, class_names)
