@@ -8,11 +8,12 @@ private_base_dir = Path('../robot_or_brain_private_data/images_by_class')
 combined_base_dir = Path('../robot_or_brain_combined_data/images_by_class')
 
 
-def load_dataset(split, current_base_dir=combined_base_dir):
-    validation_dir = current_base_dir / split
+def load_dataset(split, base_dir=combined_base_dir):
+    validation_dir = base_dir / split
     class_list = [p.name for p in validation_dir.iterdir()]
     data_lists = [[f, cls] for cls in class_list for f in (validation_dir / cls).iterdir()]
     dataset = df({'paths': [path for path, _ in data_lists], 'y': [cls for _, cls in data_lists]})
+    print(f'Loaded {split} set with {len(dataset)} instances.')
     return dataset, class_list
 
 
