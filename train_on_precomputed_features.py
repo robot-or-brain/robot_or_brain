@@ -14,9 +14,9 @@ from tensorflow.keras.optimizers import Adam
 from tqdm import tqdm
 from wandb.keras import WandbCallback
 
-# import wandb
+import wandb
 
-# wandb.init(project="robot-or-brain-POC", entity="robot-or-brain")
+wandb.init(project="clip-features", entity="robot-or-brain")
 
 parser = argparse.ArgumentParser(description='Train classifier on directory structure with images.')
 parser.add_argument('--data_base_path', type=Path, help='Path to dir containing the metadata csv file.')
@@ -86,7 +86,7 @@ def load_dataset(path):
 
 
 train_ds, class_names, n_features = load_dataset(train_path)
-val_ds, _, _ = load_dataset(train_path)
+val_ds, _, _ = load_dataset(validation_path)
 
 print(train_ds)
 
@@ -97,7 +97,7 @@ model.fit(
     train_ds,
     epochs=config['epochs'],
     validation_data=val_ds,
-    # callbacks=[WandbCallback()],
+    callbacks=[WandbCallback()],
 )
 
-# model.save('fine_tuned_model_' + wandb.run.id)
+model.save('fine_tuned_model_' + wandb.run.id)
