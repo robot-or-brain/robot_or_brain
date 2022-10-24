@@ -46,7 +46,7 @@ config = {
 print(config)
 
 
-# wandb.config = config
+wandb.config = config
 
 def create_model(n_classes, n_features):
     """
@@ -81,6 +81,8 @@ def load_dataset(path):
     class_names = data['y'].unique()
     y = np.array([np.where(class_names == e)[0][0] for e in data['y']])
     x = np.concatenate(data['encodings'].to_numpy())
+    print(f'Loaded {len(x)} instances from {path}.')
+    print(f'X shape {x.shape} and y shape {y.shape} with labels:\n{data["y"].value_counts()}.')
     train_ds = tf.data.Dataset.from_tensor_slices((x, y)).batch(config['batch_size'])
     return train_ds, class_names, n_features
 
@@ -100,4 +102,4 @@ model.fit(
     callbacks=[WandbCallback()],
 )
 
-model.save('fine_tuned_model_' + wandb.run.id)
+model.save('clip_features_model_' + wandb.run.id)
