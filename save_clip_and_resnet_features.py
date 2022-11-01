@@ -1,9 +1,8 @@
 import argparse
 from pathlib import Path
 
-import pandas as pd
 import numpy as np
-import torch
+import pandas as pd
 from PIL import Image
 from tqdm import tqdm
 
@@ -17,6 +16,7 @@ args = parser.parse_args()
 
 
 def predict_image_with_clip(image_path):
+    import torch
     import clip
     # See first example at https://github.com/openai/CLIP#usage
     device = "cuda" if torch.cuda.is_available() else "cpu"
