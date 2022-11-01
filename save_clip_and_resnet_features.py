@@ -1,24 +1,23 @@
 import argparse
 from pathlib import Path
 
-import clip
+import pandas as pd
 import numpy as np
-import tensorflow as tf
 import torch
 from PIL import Image
-from tensorflow.keras.applications.resnet_v2 import ResNet50V2, preprocess_input
-from tensorflow.keras.models import Model
 from tqdm import tqdm
 
 from utils import load_dataset
 
 parser = argparse.ArgumentParser(description='Train classifier on directory structure with images.')
 parser.add_argument('--data_base_path', type=Path, help='Path to dir containing the metadata csv file.', required=True)
+parser.add_argument('--model', type=str, help='Choose from "clip" or "resnet".', required=True)
 
 args = parser.parse_args()
 
 
 def predict_image_with_clip(image_path):
+    import clip
     # See first example at https://github.com/openai/CLIP#usage
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model, preprocess = clip.load("ViT-B/32", device=device)
@@ -33,6 +32,10 @@ def predict_image_with_clip(image_path):
 
 
 def predict_image_with_resnet(image_path):
+    import tensorflow as tf
+    from tensorflow.keras.applications.resnet_v2 import ResNet50V2, preprocess_input
+    from tensorflow.keras.models import Model
+
     base_model = ResNet50V2(
         include_top=False,
         weights='imagenet',
@@ -53,10 +56,20 @@ def predict_image_with_resnet(image_path):
 
 
 def encode_and_save(base_dir, split):
-    data_set, _ = load_dataset(split, base_dir=base_dir / 'images_by_class')
-    data_set['clip_features'] = [predict_image_with_clip(p) for p in tqdm(data_set['paths'])]
-    data_set['resnet_features'] = [predict_image_with_resnet(p) for p in tqdm(data_set['paths'])]
-    data_set.to_pickle(base_dir / f'{split}.pk')
+    data_set_path = base_dir / f'{split}.pk'
+
+    if data_set_path.exists():
+        data_set = pd.read_pickle(data_set_path)
+    else:
+        data_set, _ = load_dataset(split, base_dir=base_dir / 'images_by_class')
+
+    if args.model == 'clip':
+        data_set['clip_features'] = [predict_image_with_clip(p) for p in tqdm(data_set['paths'])]
+
+    if args.model == 'resnet':
+        data_set['resnet_features'] = [predict_image_with_resnet(p) for p in tqdm(data_set['paths'])]
+
+    data_set.to_pickle(data_set_path)
 
 
 encode_and_save(args.data_base_path, 'validation')
