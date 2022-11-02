@@ -16,7 +16,6 @@ from wandb.keras import WandbCallback
 
 import wandb
 
-wandb.init(project="clip-features", entity="robot-or-brain")
 
 parser = argparse.ArgumentParser(description='Train classifier on directory structure with images.')
 parser.add_argument('--data_base_path', type=Path, help='Path to dir containing the metadata csv file.')
@@ -46,6 +45,7 @@ config = {
     "lr_decay": args.lr_decay,
     "dropout_rate": args.dropout_rate,
 }
+wandb.init(project="clip-features", entity="robot-or-brain", config=config)
 
 print(config)
 
