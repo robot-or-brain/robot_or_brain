@@ -103,7 +103,7 @@ model.fit(
     train_ds,
     epochs=config['epochs'],
     validation_data=val_ds,
-    callbacks=[WandbCallback()],
+    callbacks=[WandbCallback(save_model=False)],
 )
 
 model.save('clip_features_model_' + wandb.run.id)
