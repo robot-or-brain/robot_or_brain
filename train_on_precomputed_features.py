@@ -27,8 +27,12 @@ parser.add_argument('--learning_rate', default=0.0003, type=float, help='The siz
 parser.add_argument('--lr_decay', default=0.0001, type=float,
                     help='The rate at which the learning rate is decreased over epochs.')
 parser.add_argument('--dropout_rate', default=0.85, type=float, help='Rate for dropout layers. None means no dropout.')
+parser.add_argument('--feature_type', default='both', choices=['clip', 'resnet', 'both'], help='Use only clip or resnet features or both.')
 
 args = parser.parse_args()
+
+if args.feature_type != 'clip':
+    raise NotImplementedError(f"Only clip feature_type is implemented at the moment but the user selected '{args.feature_type}' feature type instead.")
 
 validation_path = args.data_base_path / 'validation.pk'
 train_path = args.data_base_path / 'train.pk'
