@@ -116,8 +116,8 @@ def evaluate(model, validation_ds, class_names):
     from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
     confusion = confusion_matrix(trues, predicted)
     print(confusion)
-    disp = ConfusionMatrixDisplay(confusion_matrix=confusion, display_labels=class_names)
-    _ = disp.plot(cmap='Greys', xticks_rotation='vertical')
+    # disp = ConfusionMatrixDisplay(confusion_matrix=confusion, display_labels=class_names)
+    # _ = disp.plot(cmap='Greys', xticks_rotation='vertical')
 
     # Confusion matrix number 2
     unique_label = np.unique([trues, predicted])
