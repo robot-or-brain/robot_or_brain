@@ -32,7 +32,8 @@ def predict_image_with_clip(image_path):
 def predict_image_with_resnet(image_path):
     model, preprocess = ResnetModel().get_model_and_preprocess()
 
-    img = Image.open(image_path)
+    input_resolution = 244
+    img = Image.open(image_path).resize((input_resolution, input_resolution)).convert('RGB')
     array = np.array(img)
     preprocessed = preprocess(np.expand_dims(array, axis=0))
     return model.predict(preprocessed)
