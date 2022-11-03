@@ -6,6 +6,7 @@ import pandas as pd
 from PIL import Image
 from tqdm import tqdm
 
+from base_models import ClipModel, ResnetModel
 from utils import load_dataset
 
 parser = argparse.ArgumentParser(description='Train classifier on directory structure with images.')
@@ -28,59 +29,13 @@ def predict_image_with_clip(image_path):
     return logits_per_image.cpu().numpy()
 
 
-class ClipModel:
-
-    def __init__(self):
-        self.model = None
-        self.preprocess = None
-        self.device
-
-    def get_model_and_preprocess(self):
-        if self.model is None:
-            self.initialize_model()
-        return self.model, self.preprocess, self.device
-
-    def initialize_model(self):
-        import torch
-        import clip
-        # See first example at https://github.com/openai/CLIP#usage
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.model, self.preprocess = clip.load("ViT-B/32", device=self.device)
-
-
 def predict_image_with_resnet(image_path):
-    model = ResnetModel().get_model()
+    model, preprocess = ResnetModel().get_model_and_preprocess()
 
     img = Image.open(image_path)
-    np_array = np.expand_dims(np.array(img), axis=0)
-
-    return model.predict(np_array)
-
-
-class ResnetModel:
-    def __init__(self):
-        self.model = None
-
-    def get_model(self):
-        if self.model is None:
-            self.initialize_model()
-        return self.model
-
-    def initialize_model(self):
-        import tensorflow as tf
-        from tensorflow.keras.applications.resnet_v2 import ResNet50V2, preprocess_input
-        from tensorflow.keras.models import Model
-        base_model = ResNet50V2(
-            include_top=False,
-            weights='imagenet',
-            input_tensor=None,
-            input_shape=None,
-            pooling='avg'
-        )
-        input_layer = tf.keras.Input(shape=(None, None, 3))
-        preprocessed_input = preprocess_input(input_layer)
-        prediction_layer = base_model(preprocessed_input)
-        self.model = Model(inputs=input_layer, outputs=prediction_layer)
+    array = np.array(img)
+    preprocessed = preprocess(np.expand_dims(array, axis=0))
+    return model.predict(preprocessed)
 
 
 def encode_and_save(base_dir, split):
