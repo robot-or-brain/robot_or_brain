@@ -30,8 +30,6 @@ parser.add_argument('--feature_type', default='both', choices=['clip', 'resnet',
 
 args = parser.parse_args()
 
-if args.feature_type != 'clip':
-    raise NotImplementedError(f"Only clip feature_type is implemented at the moment but the user selected '{args.feature_type}' feature type instead.")
 
 validation_path = args.data_base_path / 'validation.pk'
 train_path = args.data_base_path / 'train.pk'
@@ -79,20 +77,38 @@ def create_model(n_classes, n_features):
     return model
 
 
-def load_dataset(path):
+def load_dataset(path, feature_type):
     data = pd.read_pickle(path)
-    n_features = data['encodings'][0].shape[-1]
+    x = get_x_from_dataframe(data, feature_type)
+
+    n_features = x.shape[1]
     class_names = data['y'].unique()
     y = np.array([np.where(class_names == e)[0][0] for e in data['y']])
-    x = np.concatenate(data['encodings'].to_numpy())
-    print(f'Loaded {len(x)} instances from {path}.')
+    print(f'Loaded {len(x)} instances from "{path}" with {n_features} features each.')
     print(f'X shape {x.shape} and y shape {y.shape} with labels:\n{data["y"].value_counts()}.')
     train_ds = tf.data.Dataset.from_tensor_slices((x, y)).batch(config['batch_size'])
     return train_ds, class_names, n_features
 
 
-train_ds, class_names, n_features = load_dataset(train_path)
-val_ds, _, _ = load_dataset(validation_path)
+def get_x_from_dataframe(data, feature_type):
+    use_clip = feature_type in ['clip', 'both']
+    use_resnet = feature_type in ['resnet', 'both']
+    x_list = []
+    if use_clip:
+        x_list += [(feature_column_to_numpy(data, 'clip_features'))]
+    if use_resnet:
+        x_list += [(feature_column_to_numpy(data, 'resnet_features'))]
+    return np.concatenate(x_list, axis=1)
+
+
+def feature_column_to_numpy(data, column_name):
+    x = np.concatenate(data[column_name].to_numpy())
+    print(f'Took {x.shape[1]} from column {column_name}.')
+    return x
+
+
+train_ds, class_names, n_features = load_dataset(train_path, args.feature_type)
+val_ds, _, _ = load_dataset(validation_path, args.feature_type)
 
 print(train_ds)
 
