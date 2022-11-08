@@ -39,9 +39,10 @@ config = {
     "epochs": args.epochs,
     "batch_size": args.batch_size,
     "validation_path": validation_path,
-    "train_path": Path(''),
+    "train_path": train_path,
     "lr_decay": args.lr_decay,
     "dropout_rate": args.dropout_rate,
+    "feature_type": args.feature_type,
 }
 wandb.init(project="clip-features", entity="robot-or-brain", config=config)
 
