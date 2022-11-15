@@ -137,5 +137,3 @@ wandb login
 Open a website to https://wandb.ai/home  
 Go to your profile -> Settings  
 Scroll down to API keys and create ... or copy the API key to your terminal  
-
-
