@@ -25,8 +25,8 @@ def predict_image_with_clip(image_path):
 
     with torch.no_grad():
         logits_per_image = model.encode_image(image)
-        # probs = logits_per_image.softmax(dim=-1).cpu().numpy()
-    return logits_per_image.cpu().numpy()
+        probs = logits_per_image.softmax(dim=-1).cpu().numpy()
+    return probs
 
 
 def predict_image_with_resnet(image_path):
