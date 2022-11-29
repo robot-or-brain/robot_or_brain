@@ -11,11 +11,15 @@ parameters:
   data_base_path:
     value: ..\robot_or_brain_combined_data\
   epochs:
-    value: 100
+    value: 50
   batch_size:
-    value: 32
+    value: 16
   learning_rate:
-    value: 0.001
+    values:
+      - 0.0003
+      - 0.001
+      - 0.003
+      - 0.01
   lr_decay:
     value: 1e-4
   dropout_rate:
