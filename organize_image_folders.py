@@ -39,11 +39,11 @@ rest, test = train_test_split(instances, test_size=0.25, random_state=0, stratif
 train, validation = train_test_split(rest, test_size=0.2, random_state=0, stratify=[y for db, _, y, _ in rest])
 
 
-def organize_file_structure(instances, split):
+def organize_file_structure(instances, split, base_path):
     print('Creating {} folder with {} instances'.format(split, len(instances)))
     missing = []
     for database_name, source_file, class_name, id in instances:
-        source_path = Path(database_name) / source_file
+        source_path = base_path / database_name / source_file
         if not os.path.exists(source_path):
             missing += [source_path]
             continue
@@ -63,6 +63,7 @@ def make_class_name_suitable_for_file_paths(class_name):
     return ' '.join(class_name_without_slashes.split('  '))
 
 
-organize_file_structure(train, 'train')
-organize_file_structure(validation, 'validation')
-organize_file_structure(test, 'test')
+base_path = Path(args.csv_path).parent
+organize_file_structure(train, 'train', base_path)
+organize_file_structure(validation, 'validation', base_path)
+organize_file_structure(test, 'test', base_path)
