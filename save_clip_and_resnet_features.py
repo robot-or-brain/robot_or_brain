@@ -58,3 +58,4 @@ def encode_and_save(base_dir, split):
 
 encode_and_save(args.data_base_path, 'validation')
 encode_and_save(args.data_base_path, 'train')
+encode_and_save(args.data_base_path, 'test')
