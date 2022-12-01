@@ -34,8 +34,34 @@ augmentations had never worked during our project, but would in theory be a tech
 can create a [zero-shot classifier](#Clip-zero-shot-classifier), without using any train data using the clip model.
 
 ### Organize images
+For easy loading with Keras and other frameworks, we want images organized in folders as follows.
+```
+/ root
+  / class_robot
+    / file1.jpg
+    / file2.jpg
+  / class_brain
+    / file1.jpg
+    / file2.jpg
+```
+However, our dataset was organized as follows:
+```
+/ root
+  / metadata.csv
+  / database_a
+    / file1.jpg
+    / file2.jpg
+  / database_b
+    / file1.jpg
+    / file2.jpg
+```
+The metadata csv-file contained the following columns:
+```"id","imageid","database_name","aiframe","status","coder","coded_time"```
+Use `organize_image_folders.py` to get such a dataset reorganized to the keras-ready form as described above.
 
-stub
+```bash
+python organize_image_folders.py example_data/metadata.csv
+```
 
 ## Model creation and validation
 
