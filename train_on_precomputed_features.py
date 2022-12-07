@@ -27,6 +27,7 @@ parser.add_argument('--lr_decay', default=0.0001, type=float,
                     help='The rate at which the learning rate is decreased over epochs.')
 parser.add_argument('--dropout_rate', default=0.85, type=float, help='Rate for dropout layers. None means no dropout.')
 parser.add_argument('--feature_type', default='both', choices=['clip', 'resnet', 'both'], help='Use only clip or resnet features or both.')
+parser.add_argument('--n_enriched_images', default=0, type=int, help='Number of enriched images to use while training.')
 
 args = parser.parse_args()
 
@@ -78,8 +79,16 @@ def create_model(n_classes, n_features):
     return model
 
 
-def load_dataset(path, feature_type):
-    data = pd.read_pickle(path)
+def load_dataset(path, feature_type, n_enriched_images=0):
+    """
+    Load a dataset using pickle, only adding the requested number of enriched images.
+    :param path:
+    :param feature_type:
+    :param n_enriched_images: Number of enriched images to be added. Default = 0.
+    :return:
+    """
+    data = load_filtered_dataset(path, n_enriched_images=n_enriched_images)
+
     x = get_x_from_dataframe(data, feature_type)
 
     n_features = x.shape[1]
@@ -89,6 +98,33 @@ def load_dataset(path, feature_type):
     print(f'X shape {x.shape} and y shape {y.shape} with labels:\n{data["y"].value_counts()}.')
     train_ds = tf.data.Dataset.from_tensor_slices((x, y)).batch(config['batch_size'])
     return train_ds, class_names, n_features
+
+
+def load_filtered_dataset(path, n_enriched_images):
+    """
+    Unpickle dataset and filter the enriched images out based on file name.
+    Two assumptions here which both hold for our datasets:
+    - file names are shorter than about 10 characters for the base set, and over
+      80 for the enriched files
+    - file names should be unique identifiers
+    :param path:
+    :param n_enriched_images: Number of enriched images to be added.
+    :return:
+    """
+    data_tabel = pd.read_pickle(path)
+
+    threshold = 20
+    data_tabel['file_name'] = [str(Path(p).name) for p in data_tabel.paths]
+    base_data_names = [n for n in data_tabel.file_name if len(n) <= threshold]
+    enriched_names = [n for n in data_tabel.file_name if n not in base_data_names]
+
+    n_enriched_images = min(n_enriched_images, len(enriched_names))
+    names = base_data_names + enriched_names[:n_enriched_images]
+    print(f'Using {n_enriched_images} of {len(enriched_names)} enriched '
+          f'images together with {len(base_data_names)} original training '
+          f'data, resulting in {len(names)} images in total from {str(path)}.')
+
+    return data_tabel[data_tabel.file_name.isin(names)]
 
 
 def get_x_from_dataframe(data, feature_type):
@@ -108,7 +144,7 @@ def feature_column_to_numpy(data, column_name):
     return x
 
 
-train_ds, class_names, n_features = load_dataset(train_path, args.feature_type)
+train_ds, class_names, n_features = load_dataset(train_path, args.feature_type, n_enriched_images=args.n_enriched_images)
 val_ds, _, _ = load_dataset(validation_path, args.feature_type)
 
 print(train_ds)
