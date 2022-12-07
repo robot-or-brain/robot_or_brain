@@ -44,6 +44,7 @@ config = {
     "lr_decay": args.lr_decay,
     "dropout_rate": args.dropout_rate,
     "feature_type": args.feature_type,
+    "n_enriched_images": args.n_enriched_images,
 }
 wandb.init(project="clip-features", entity="robot-or-brain", config=config)
 
