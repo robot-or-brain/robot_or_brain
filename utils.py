@@ -39,5 +39,5 @@ def calculate_performance_metrics(trues, predicted, class_list):
                             krippendorff.alpha(
                                 reliability_data=[[list(class_list).index(label) for label in trues],
                                                   [list(class_list).index(label) for label in predicted]])]
-    general_metrics = df(general_metrics_data, index=['accuracy', 'krippendorff alpha'])
+    general_metrics = df(general_metrics_data, index=['accuracy', 'krippendorff alpha'], columns=['score'])
     return class_metrics, general_metrics
