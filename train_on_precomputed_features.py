@@ -140,7 +140,7 @@ def get_x_from_dataframe(data, feature_type):
 
 def feature_column_to_numpy(data, column_name):
     x = np.concatenate(data[column_name].to_numpy())
-    print(f'Took {x.shape[1]} from column {column_name}.')
+    print(f'Took {x.shape[1]} features from column {column_name}.')
     return x
 
 
