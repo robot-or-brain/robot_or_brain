@@ -6,6 +6,8 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix
 
+from utils import print_performance_metrics
+
 parser = argparse.ArgumentParser(description='Train classifier on directory structure with images.')
 parser.add_argument('--data_base_path', type=Path, help='Path to dir containing the metadata csv file.')
 parser.add_argument('--number_of_trees', default=1000, type=int, help='Number of random trees to learn.')
@@ -24,9 +26,10 @@ def score(path, model):
     rf_pred_clipvc = model.predict(vclipc)
     trues = vc.y
     predictions = rf_pred_clipvc
-    print(accuracy_score(trues, predictions))
-    print(confusion_matrix(trues, predictions))
-    # print_performance_metrics(trues, predicted, class_list)
+    class_list = (sorted(set(list(predictions) + list(trues))))
+
+    print(confusion_matrix(trues, predictions, labels=class_list))
+    print_performance_metrics(trues, predictions, class_list)
 
 
 def train(path, n_trees=500):
