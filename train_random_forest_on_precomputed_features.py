@@ -21,6 +21,7 @@ train_path = args.data_base_path / 'train.pk'
 
 
 def score(path, model):
+    print(f'Scoring {path}')
     vc = pd.read_pickle(path)
     vclipc = np.stack([fv[0] for fv in vc.clip_features.to_numpy()], axis=0)
     rf_pred_clipvc = model.predict(vclipc)
@@ -28,11 +29,13 @@ def score(path, model):
     predictions = rf_pred_clipvc
     class_list = (sorted(set(list(predictions) + list(trues))))
 
-    print(confusion_matrix(trues, predictions, labels=class_list))
+    print(class_list)
+    print(confusion_matrix(trues, predictions))
     print_performance_metrics(trues, predictions, class_list)
 
 
 def train(path, n_trees=500):
+    print(f'Training on {path}')
     clf = RandomForestClassifier(n_estimators=n_trees)
     c = pd.read_pickle(path)
     c['names'] = [str(p).split('\\')[-1] for p in c.paths]
