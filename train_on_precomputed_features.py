@@ -1,21 +1,16 @@
 import argparse
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
-from pandas import DataFrame as df
 import tensorflow as tf
-from tensorflow.keras import Sequential
 from tensorflow.keras import Input
-from tensorflow.keras.utils import to_categorical
-from tensorflow.keras import Model
+from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
-
-from tqdm import tqdm
 from wandb.keras import WandbCallback
 
 import wandb
-
 
 parser = argparse.ArgumentParser(description='Train classifier on directory structure with images.')
 parser.add_argument('--data_base_path', type=Path, help='Path to dir containing the metadata csv file.')
@@ -167,7 +162,7 @@ def evaluate(model, validation_ds, class_names):
     predicted = [class_names[v] for v in np.argmax(model.predict(validation_ds), 1)]
     trues = [class_names[int(y)] for _x, y in validation_ds.unbatch()]
 
-    from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+    from sklearn.metrics import confusion_matrix
     confusion = confusion_matrix(trues, predicted)
     print(confusion)
     # disp = ConfusionMatrixDisplay(confusion_matrix=confusion, display_labels=class_names)
