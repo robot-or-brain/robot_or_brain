@@ -33,14 +33,24 @@ def print_performance_metrics(trues, predicted, class_list):
 
 
 def calculate_performance_metrics(trues, predicted, class_list):
+    """
+    Calculates some performance metrics given a list of ground truth values and a list of predictions to be compared.
+    :param trues: list of ground truths
+    :param predicted: list of model predictions
+    :param class_list: the set of all possible labels
+    :return: a dataframe with class level metrics and a dataframe with general metrics
+    """
     class_metrics_data = {'recall': recall_score(trues, predicted, average=None),
                           'precision': precision_score(trues, predicted, average=None),
                           'f1': f1_score(trues, predicted, average=None)}
     class_metrics = df(class_metrics_data, index=class_list)
+
+    i_trues = [list(class_list).index(label) for label in trues]
+    i_predicted = [list(class_list).index(label) for label in predicted]
+    i_set = np.unique(i_trues + i_predicted)
     general_metrics_data = [accuracy_score(trues, predicted),
-                            krippendorff.alpha(
-                                reliability_data=[[list(class_list).index(label) for label in trues],
-                                                  [list(class_list).index(label) for label in predicted]])]
+                            krippendorff.alpha(reliability_data=[i_trues, i_predicted],
+                                               level_of_measurement='nominal', value_domain=i_set)]
     general_metrics = df(general_metrics_data, index=['accuracy', 'krippendorff alpha'], columns=['score'])
     return class_metrics, general_metrics
 
