@@ -7,7 +7,7 @@ from PIL import Image
 from tqdm import tqdm
 
 from base_models import ClipModel, ResnetModel
-from utils import load_dataset
+from utils import generate_dataset_from_images
 
 parser = argparse.ArgumentParser(description='Train classifier on directory structure with images.')
 parser.add_argument('--data_base_path', type=Path, help='Path to dir containing the metadata csv file.', required=True)
@@ -45,7 +45,7 @@ def encode_and_save(base_dir, split):
     if data_set_path.exists():
         data_set = pd.read_pickle(data_set_path)
     else:
-        data_set, _ = load_dataset(split, base_dir=base_dir / 'images_by_class')
+        data_set, _ = generate_dataset_from_images(split, base_dir=base_dir / 'images_by_class')
 
     if args.model == 'clip':
         data_set['clip_features'] = [predict_image_with_clip(p) for p in tqdm(data_set['paths'])]

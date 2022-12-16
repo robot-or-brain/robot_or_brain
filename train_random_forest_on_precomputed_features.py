@@ -2,12 +2,10 @@ import argparse
 import pickle
 from pathlib import Path
 
-import numpy as np
-import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix
 
-from utils import print_performance_metrics
+from utils import print_performance_metrics, load_clip_features_and_labels_from_dataset
 
 parser = argparse.ArgumentParser(
     description='Trains a random forest classifier on directory containing precomputed image feature vectors.')
@@ -29,7 +27,7 @@ def score(path: str, model: RandomForestClassifier):
     :return: None
     """
     print(f'Scoring {path}')
-    X, y = _load_dataset(path)
+    X, y = load_clip_features_and_labels_from_dataset(path)
     predictions = model.predict(X)
     class_list = (sorted(set(list(predictions) + list(y))))
 
@@ -46,22 +44,12 @@ def train(path: str, n_trees: int = 500) -> RandomForestClassifier:
     :return: trained classifier
     """
     print(f'Training on {path}')
-    clipc, yc = _load_dataset(path)
+    X, y = load_clip_features_and_labels_from_dataset(path)
     clf = RandomForestClassifier(n_estimators=n_trees)
-    return clf.fit(clipc, yc)
-
-
-def _load_dataset(path: str):
-    """ Load X and y from the dataset at path. This function is overly complicated. TODO. """
-    dataset = pd.read_pickle(path)
-    dataset['names'] = [str(p).split('\\')[-1] for p in dataset.paths]
-    X = np.stack([dataset.loc[dataset['names'] == n].clip_features.to_numpy()[0][0] for n in dataset.names])
-    y = np.stack([dataset.loc[dataset['names'] == n].y for n in dataset.names])[:, 0]
-    return X, y
+    return clf.fit(X, y)
 
 
 model = train(train_path, args.number_of_trees)
-print(type(model))
 with open(model_path, 'wb') as f:
     pickle.dump(model, f)
 score(train_path, model)

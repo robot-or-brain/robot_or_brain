@@ -1,5 +1,7 @@
 from pathlib import Path
 import krippendorff
+import numpy as np
+import pandas as pd
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from pandas import DataFrame as df
 from IPython.display import display
@@ -9,7 +11,7 @@ private_base_dir = Path('../robot_or_brain_private_data/images_by_class')
 combined_base_dir = Path('../robot_or_brain_combined_data/images_by_class')
 
 
-def load_dataset(split, base_dir=combined_base_dir):
+def generate_dataset_from_images(split, base_dir=combined_base_dir):
     validation_dir = base_dir / split
     class_list = [p.name for p in validation_dir.iterdir()]
     data_lists = [[f, cls] for cls in class_list for f in (validation_dir / cls).iterdir()]
@@ -41,3 +43,16 @@ def calculate_performance_metrics(trues, predicted, class_list):
                                                   [list(class_list).index(label) for label in predicted]])]
     general_metrics = df(general_metrics_data, index=['accuracy', 'krippendorff alpha'], columns=['score'])
     return class_metrics, general_metrics
+
+
+def load_clip_features_and_labels_from_dataset(path: str):
+    """
+    Load X (features) and y (labels) from the dataset at path. This function is overly complicated. TODO.
+    :param path: path of the pickled dataset
+    :return: features, class labels (ground truth)
+    """
+    dataset = pd.read_pickle(path)
+    dataset['names'] = [str(p).split('\\')[-1] for p in dataset.paths]
+    X = np.stack([dataset.loc[dataset['names'] == n].clip_features.to_numpy()[0][0] for n in dataset.names])
+    y = np.stack([dataset.loc[dataset['names'] == n].y for n in dataset.names])[:, 0]
+    return X, y
