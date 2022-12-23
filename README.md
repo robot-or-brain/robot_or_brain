@@ -21,7 +21,7 @@ pip install -r requirements.txt
 
 ## How to run
 
-This project code can be used to train models through a small number of
+This project code can be used to train models through a number of
 different ways. In any case, images used for training and validation need to be organized in the expected file
 structure, see [organize-images](#organize-images). When that's done, either a resnet-50 model can be fine-tuned
 [directly from the images](#Train-resnet50-on-images-(inefficient)) or features from either
