@@ -126,3 +126,7 @@ A model can be trained directly on the images using a ResNet50 model as a basis.
 train_model_on_features.py --batch_size=16 --data_base_path=data_folder/ --dropout_rate=0.95 --epochs=50 --learning_rate=0.0003 --lr_decay=0.0001 --use_augmentation=False
 ```
 Several model files will be saved to a into a folder. The model can be validated using the notebook [`performance_fine_tuned_resnet.ipynb`](performance_fine_tuned_resnet.ipynb).
+
+## Where is the best model?
+
+The best performing model is stored in `./clip_features_model_kf5cnvvi`. It is a small neural network trained on [precomputed clip features](#train-model-using-precomputed-clip-features). To run it on a new image you first need to [precompute features from the image using clip](#precomputing-image-features). Then the model can be run using those features as done in performance_fine_tune_clip.ipynb.
