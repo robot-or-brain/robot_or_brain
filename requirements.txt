@@ -8,3 +8,4 @@ pillow>=9.2
 tqdm>=4.64
 git+https://github.com/openai/CLIP.git
 ipython
+tensorflow
