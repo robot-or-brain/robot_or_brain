@@ -129,4 +129,4 @@ Several model files will be saved to a into a folder. The model can be validated
 
 ## Where is the best model?
 
-The best performing model is stored in `./clip_features_model_kf5cnvvi`. It is a small neural network trained on [precomputed clip features](#train-model-using-precomputed-clip-features). To run it on a new image you first need to [precompute features from the image using clip](#precomputing-image-features). Then the model can be run using those features as done in performance_fine_tune_clip.ipynb.
+The best performing model is stored in `./clip_features_model_kf5cnvvi`. It is a small neural network trained on [precomputed clip features](#train-model-using-precomputed-clip-features). To run it on a new image you first need to [precompute features from the image using clip](#precomputing-image-features). Then the model can be run using those features as done in [performance_fine_tune_clip.ipynb](performance_fine_tune_clip.ipynb).
