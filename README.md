@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10512297.svg)](https://doi.org/10.5281/zenodo.10512297)
+
 # Robot or brain?
 
 Welcome to the repository for the Robot or Brain project. The purpose of the project was to create a computer vision
